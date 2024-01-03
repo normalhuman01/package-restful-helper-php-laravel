@@ -1,150 +1,150 @@
-# LARAVEL RESTFUL HELPER
+# Helper de RESTful para Laravel
 
-## Install
+## Instalación
 
-Via Composer
+A través del Composer
 
 ``` bash
 $ composer require mrjmpl3/laravel-restful-helper
 ```
 
-## Usage
+## Uso
 
-This packages make queries depends of the request, like GraphQL.
+Este paquete realiza consultas basadas en la solicitud, similar a GraphQL.
 
-### Requests
+### Solicitudes
 
-- **Filter data:** /product?column=value&column2=value2
-- **Sort data:** /product?sort=-column1,column2
-    - With the negative prefix = desc
-    - Without the negative prefix = asc
-- **Fields o Select data:** /product?fields=column1,column2,column3,column4
-- **Paginate and Per Page:** /product?paginate=true&per_page=5
-- **Embed:** /product?embed=relationfunction
+- **Filtrar datos:** /producto?columna=valor&columna2=valor2
+- **Ordenar datos:** /producto?sort=-columna1,columna2
+    - Con el prefijo negativo = desc
+    - Sin el prefijo negativo = asc
+- **Seleccionar campos:** /producto?fields=columna1,columna2,columna3,columna4
+- **Paginar y por página:** /producto?paginate=true&per_page=5
+- **Incrustar:** /producto?embed=funcionRelacion
 
-### Code
+### Código
 
-#### To Collection
+#### A Colección
 
 ```
-// Create a simple instance of model where you want apply the queries
-$model = new Product();
-$responseHelper = new ApiRestHelper($model);
+// Crea una instancia simple del modelo donde deseas aplicar las consultas
+$modelo = new Producto();
+$ayudanteRest = new ApiRestHelper($modelo);
           
-// The method 'toCollection' return a collection with all data filtered
-$response = $responseHelper->toCollection();
+// El método 'toCollection' devuelve una colección con todos los datos filtrados
+$respuesta = $ayudanteRest->toCollection();
 ```
       
-#### To Model
+#### A Modelo
 
 ```
-// Create a simple instance of model where you want apply the queries
-$model = new Product();           
-$responseHelper = new ApiRestHelper($model);
+// Crea una instancia simple del modelo donde deseas aplicar las consultas
+$modelo = new Producto();           
+$ayudanteRest = new ApiRestHelper($modelo);
                 
-// The method 'toModel' return a model with all data filtered
-$response = $responseHelper->toModel();
+// El método 'toModel' devuelve un modelo con todos los datos filtrados
+$respuesta = $ayudanteRest->toModel();
 ```
       
-#### From Builder to Collection
+#### De Constructor a Colección
 
 ```
-// Important! Don't close the query with get() or paginate()
-$query = Product::where('state', = , 1);
-$responseHelper = new ApiRestHelper($query);
+// ¡Importante! No cierres la consulta con get() o paginate()
+$consulta = Producto::where('estado', '=', 1);
+$ayudanteRest = new ApiRestHelper($consulta);
           
-// The method 'toCollection' return a collection with all data filtered
-$response = $responseHelper->toCollection();
+// El método 'toCollection' devuelve una colección con todos los datos filtrados
+$respuesta = $ayudanteRest->toCollection();
 ```
       
-#### Relations
+#### Relaciones
 
-- In model, add array like next example:
+- En el modelo, agrega un array como en el siguiente ejemplo:
 
     ```
     public $apiAcceptRelations = [
         'post'
     ];
     ```
-    Where 'post' is the function name of relation
+    Donde 'post' es el nombre de la función de relación.
                 
-- In the API Resources, use the function embed
-    
+- En los Recursos de la API, utiliza la función incrustar:
+
     ```
-    public function toArray($request) {
-        $embed = (new ApiRestHelper)->getEmbed();
+    public function toArray($solicitud) {
+        $incrustar = (new ApiRestHelper)->getEmbed();
                 
         return [
           'id' => $this->id,
-          'name' => $this->name,
-          $this->mergeWhen(array_key_exists('post', $embed), [
-              'post' => $this->getPostResource($embed),
+          'nombre' => $this->nombre,
+          $this->mergeWhen(array_key_exists('post', $incrustar), [
+              'post' => $this->getPostResource($incrustar),
           ]),
-          'created_at' => $this->created_at,
-          'updated_at' => $this->updated_at,
+          'creado_en' => $this->creado_en,
+          'actualizado_en' => $this->actualizado_en,
         ];
     }
             
-    private function getPostResource($embedRequest) {
-      $postResource = NULL;
+    private function getPostResource($solicitudIncrustar) {
+      $recursoPost = NULL;
                 
-      if (array_key_exists('local', $embed)) {
-          $postRelation = $this->local();                    
-          $fieldsFromEmbed = (new ApiRestHelper($postRelation->getModel()))->getEmbedField('post');
+      if (array_key_exists('local', $incrustar)) {
+          $relacionPost = $this->local();                    
+          $camposDesdeIncrustar = (new ApiRestHelper($relacionPost->getModel()))->getEmbedField('post');
                     
-          if(!empty($fieldsFromEmbed)) {
-              $postResource = new PostResource($postRelation->select($fieldsFromEmbed)->first());
+          if(!empty($camposDesdeIncrustar)) {
+              $recursoPost = new PostResource($relacionPost->select($camposDesdeIncrustar)->first());
           } else {
-              $postResource = new PostResource($postRelation->first());
+              $recursoPost = new PostResource($relacionPost->first());
           }
       }
             
-      return $postResource;
+      return $recursoPost;
     }
     ```
-#### Transformers
+#### Transformadores
 
-- In model, add array like next example:
+- En el modelo, agrega un array como en el siguiente ejemplo:
 	
 ```
 public $apiTransforms = [
-    'id' => 'code'
+    'id' => 'codigo'
 ];
 ```
 		
-Where 'id' is the db column name , and 'code' is the column rename to response
+Donde 'id' es el nombre de la columna de la base de datos y 'codigo' es el nombre de la columna para la respuesta.
 	
-- In the API Resources, use the array $apiTransforms
+- En los Recursos de la API, utiliza el array $apiTransforms
 	
 ```
-$apiHelper = new ApiRestHelper($this);
+$ayudanteApi = new ApiRestHelper($this);
 
 return [
-    $apiHelper->getKeyTransformed('id') => $this->id,
-    'name' => $this->name,
-    'created_at' => $this->created_at,
-    'updated_at' => $this->updated_at,
+    $ayudanteApi->getKeyTransformed('id') => $this->id,
+    'nombre' => $this->nombre,
+    'creado_en' => $this->creado_en,
+    'actualizado_en' => $this->actualizado_en,
 ];
 ```
 
-- To used fields in API Resources , You can combine with transformers fields
+- Para utilizar campos en Recursos de API, puedes combinarlos con campos de transformadores
     
 ```
-$apiHelper = new ApiRestHelper($this);
+$ayudanteApi = new ApiRestHelper($this);
 
 return [
-    $this->mergeWhen($apiHelper->existInFields('id') && !is_null($this->id), [
+    $this->mergeWhen($ayudanteApi->existInFields('id') && !is_null($this->id), [
         $this->transforms['id'] => $this->id
     ]),
-    $this->mergeWhen($apiHelper->existInFields('name') && !is_null($this->name), [
-        'name' => $this->name
+    $this->mergeWhen($ayudanteApi->existInFields('nombre') && !is_null($this->nombre), [
+        'nombre' => $this->nombre
     ]),
 ]
 ```
 
-#### Exclude Fields in Filter
+#### Excluir Campos en el Filtro
 
-- In model, add array like next example:
+- En el modelo, agrega un array como en el siguiente ejemplo:
 	
 ```
 public $apiExcludeFilter = [
@@ -152,16 +152,16 @@ public $apiExcludeFilter = [
 ];
 ```
 		
-Where 'id' is the db column name to exclude
-        
-## Change log
+Donde 'id' es el nombre de la columna de la base de datos a excluir.
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+## Registro de cambios
 
-## Security
+Consulta [CHANGELOG](CHANGELOG.md) para obtener más información sobre lo que ha cambiado recientemente.
 
-If you discover any security related issues, please email jmpl3.soporte@gmail.com instead of using the issue tracker.
+## Seguridad
 
-## License
+Si descubres problemas relacionados con la seguridad, envía un correo electrónico a jmpl3.soporte@gmail.com en lugar de usar el seguimiento de problemas.
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+## Licencia
+
+Licencia MIT (MIT). Consulta [Archivo de licencia](LICENSE.md) para obtener más información.
